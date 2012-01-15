@@ -4,6 +4,8 @@ import akka.actor._
 import akka.camel._
 import collection.mutable.WeakHashMap
 import akka.event.Logging.Warning
+import akka.camel.internal.CamelEventsDispatcher.ActorActivated
+import akka.camel.internal.CamelEventsDispatcher.ActorFailedToActivate
 
 
 
@@ -23,14 +25,14 @@ class ActivationTracker extends Actor{
       case AwaitDeActivation(ref) => awaitingDeActivation ::= sender
 
       case msg @ EndpointActivated(ref)  => {
-        migration.Migration.EventHandler.debug(ref+" activated")
+        CamelEventsDispatcher debug ActorActivated(this, ref)
         awaitingActivation.foreach(_ ! msg)
         awaitingActivation = Nil
         receive = activated
       }
 
       case EndpointFailedToActivate(ref, cause) => {
-        migration.Migration.EventHandler.debug(ref+" failed to activate")
+        CamelEventsDispatcher debug ActorFailedToActivate(this, ref)
         activationFailure = Option(cause)
         awaitingActivation.foreach(_ ! EndpointFailedToActivate(ref, cause))
         awaitingActivation = Nil

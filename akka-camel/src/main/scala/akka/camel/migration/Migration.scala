@@ -16,9 +16,4 @@ object Migration{
     }
   }
   def unsupported = throw new UnsupportedOperationException
-  val EventHandler = new {
-    def notifyListeners(a:Any) : Unit = println(a)
-    def Info(a: Any) : Unit = {println(a); a }
-    def debug(a: Any) : Unit = println("DEBUG>>"+a)
-  }
 }

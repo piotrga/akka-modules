@@ -1,0 +1,6 @@
+.gradle
+.cache
+build.gradle
+build
+bin
+.

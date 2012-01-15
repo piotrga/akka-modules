@@ -30,7 +30,9 @@ private[camel] object TypedCamelAccess {
       getObjectFor("akka.camel.TypedCamel$", loader)  match {
         case Right(value) => Some(value)
         case Left(exception) =>
-          EventHandler.debug(this, exception.toString)
+          // TODO: Should this go through a event stream handler?
+          // Commented out for the moment
+//          EventHandler.debug(this, exception.toString)
           None
       }
   }

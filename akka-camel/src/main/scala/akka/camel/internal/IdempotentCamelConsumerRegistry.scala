@@ -4,16 +4,21 @@ package akka.camel.internal
  * Copyright (C) 2009-2010 Scalable Solutions AB <http://scalablesolutions.se>
  */
 
-import akka.camel.internal.component.BlockingOrNotTypeConverter
-import akka.camel._
 import java.io.InputStream
-
+import scala.collection.mutable
 import org.apache.camel.builder.RouteBuilder
-import akka.camel.migration.Migration._
-
-import akka.actor._
-import collection.mutable
 import org.apache.camel.model.RouteDefinition
+import akka.actor.actorRef2Scala
+import akka.actor.Actor
+import akka.actor.ActorRef
+import akka.actor.Props
+import akka.actor.Terminated
+import akka.camel.internal.component.BlockingOrNotTypeConverter
+import akka.camel.Camel
+import akka.camel.Consumer
+import akka.camel.ConsumerConfig
+import akka.camel.internal.CamelEventsDispatcher.ActorPublished
+import akka.camel.internal.CamelEventsDispatcher.ActorUnpublished
 
 /**
  * Guarantees idempotent registration of camel consumer endpoints.
@@ -38,13 +43,13 @@ private[camel] class IdempotentCamelConsumerRegistry(camel : Camel) extends Acto
       case RegisterConsumer(endpointUri, consumer) => {
         camel.context.addRoutes(new ConsumerActorRouteBuilder(endpointUri, consumer.self, consumer))
         context.sender ! EndpointActivated(consumer.self)
-        EventHandler notifyListeners EventHandler.Info(this, "published actor %s at endpoint %s" format(consumer, endpointUri))
+        CamelEventsDispatcher info ActorPublished(this,consumer,endpointUri)
       }
 
       case UnregisterConsumer(consumer) => {
         camel.context.stopRoute(consumer.path.toString)
         context.sender ! EndpointDeActivated(consumer)
-        EventHandler notifyListeners EventHandler.Info(this, "unpublished actor %s from endpoint %s" format(consumer, consumer.path))
+        CamelEventsDispatcher info ActorUnpublished(this,consumer)
       }
     }
 
